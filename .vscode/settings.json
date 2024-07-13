@@ -1,0 +1,24 @@
+{
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": true,
+    "editor.quickSuggestions": {
+      "other": false
+    }
+  },
+  "search.showLineNumbers": true,
+  "debug.allowBreakpointsEverywhere": true,
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#8d2089",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#b729b1",
+    "sash.hoverBorder": "#b729b1",
+    "statusBarItem.remoteBackground": "#8d2089",
+    "statusBarItem.remoteForeground": "#e7e7e7"
+  },
+  "peacock.color": "#8d2089",
+  "python.defaultInterpreterPath": "/home/voznik/.cache/pypoetry/virtualenvs/streamlit-rxdb-dataframe-zuiqvGqO-py3.10",
+  "flake8.args": ["--max-line-length=100"],
+  "flake8.importStrategy": "fromEnvironment",
+  "black-formatter.args": ["--line-length=100"]
+}

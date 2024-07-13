@@ -1,0 +1,28 @@
+{
+  "name": "streamlit-textcomplete",
+  "version": "0.0.1",
+  "description": "Textcomplete editor for HTMLTextAreaElement",
+  "main": "index.js",
+  "scripts": {
+    "build": "rspack build",
+    "dev": "rspack dev",
+    "test": "jest"
+  },
+  "keywords": [
+    "streamlit",
+    "textarea",
+    "autocomplete"
+  ],
+  "author": "voznik",
+  "license": "MIT",
+  "dependencies": {
+    "@textcomplete/core": "^0.1.13",
+    "@textcomplete/textarea": "^0.1.13",
+    "alpinejs": "^3.14.1",
+    "streamlit-component-lib": "^2.0.0"
+  },
+  "devDependencies": {
+    "@rspack/cli": "^0.7.5",
+    "@rspack/core": "^0.7.5"
+  }
+}
