@@ -16,23 +16,31 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(current_dir, "textcomplete/frontend/public/assets/data")
 
 
-def on_change(value):
+def on_select(value):
     print(value)
 
 
+original_label = "ST Text Area"
+
 txt = st.text_area(
-    "Text to analyze",
-    "It was the best of times, it was the worst of times, it was the age of "
-    "wisdom, it was the age of foolishness, it was the epoch of belief, it "
-    "was the epoch of incredulity, it was the season of Light, it was the "
-    "season of Darkness, it was the spring of hope, it was the winter of "
-    "despair, (...)",
+    value="""It was the best of times, it was the worst of times,
+it was the age of wisdom,
+it was the age of foolishness,
+it was the epoch of belief,
+it was the epoch of incredulity,
+it was the season of Light,
+it was the season of Darkness,
+it was the spring of hope,
+it was the winter of despair (...)""",
+    key="st_text_area_1",
+    label=original_label,
 )
 
 st.write(f"You wrote {len(txt)} characters.")
 
 textcomplete(
-    label="Textcomplete Example",
-    key="textcomplete_example",
-    on_change=on_change,
+    area_label=original_label,
+    on_select=on_select,
+    max_count=5,
+    # style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;",
 )

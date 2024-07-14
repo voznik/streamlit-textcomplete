@@ -1,6 +1,6 @@
 import os
 
-from typing import Any, Callable, Dict, List, Optional, Union, overload  # noqa: F401,E501
+from typing import Any, Callable, Dict, List, Literal, Optional, Union, overload  # noqa: F401,E501
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
@@ -58,87 +58,21 @@ class TextcompleteOption:
     pass
 
 
-@cache_data
-def get_dataframe_by_schema(schema: dict) -> pd:
-    """
-    Create a `pandas.DataFrame` based on the given JSONSchema.
-    """
-    df = pd.DataFrame()
-    properties = schema.get("properties", {})
-    for column, prop in properties.items():
-        if prop["type"] == "string" and prop.get("format") == "date-time":
-            df[column] = pd.Series(dtype="datetime64[ns]")
-        elif prop["type"] == "string":
-            df[column] = pd.Series(dtype="object")
-        elif prop["type"] == "boolean":
-            df[column] = pd.Series(dtype="bool")
-        elif prop["type"] == "object":
-            df[column] = pd.Series(dtype="category")
-        elif prop.get("enum") and len(prop["enum"]) > 0:
-            df[column] = pd.Series(dtype="category")
-        elif prop["type"] == "integer" and prop.get("format") == "time":
-            df[column] = pd.Series(dtype="int")  # pd.Timestamp.now()
-        elif prop["type"] == "integer":
-            df[column] = pd.Series(dtype="int")
-        elif prop["type"] == "number":
-            df[column] = pd.Series(dtype="float")
-    return df
-
-
-def _textcomplete_fn(
-    # self,
-    label: str,
-    value: str = "",
-    height: int | None = None,
-    max_chars: int | None = None,
-    key: Key | None = None,
-    help: str | None = None,
-    on_change: WidgetCallback | None = None,
-    args: WidgetArgs | None = None,
-    kwargs: WidgetKwargs | None = None,
-    *,  # keyword-only arguments:
-    placeholder: str | None = None,
-    disabled: bool = False,
-    label_visibility: LabelVisibility = "visible",
-) -> str:
-    print("textcomplete")
-
-
-@overload
 def textcomplete(
-    # self,
-    label: str,
-    value: SupportsStr | None = None,
+    area_label: str,
     height: int | None = None,
-    max_chars: int | None = None,
-    key: Key | None = None,
-    help: str | None = None,
-    on_change: WidgetCallback | None = None,
-    args: WidgetArgs | None = None,
-    kwargs: WidgetKwargs | None = None,
-    *,  # keyword-only arguments:
-    placeholder: str | None = None,
-    disabled: bool = False,
-    label_visibility: LabelVisibility = "visible",
-) -> str | None:
-    pass
-
-
-def textcomplete(
-    # self,
-    label: str,
-    value: SupportsStr | None = None,
-    height: int | None = None,
-    max_chars: int | None = None,
-    key: Key | None = None,
-    help: str | None = None,
-    on_change: WidgetCallback | None = None,
-    args: WidgetArgs | None = None,
-    kwargs: WidgetKwargs | None = None,
-    *,  # keyword-only arguments:
-    placeholder: str | None = None,
-    disabled: bool = False,
-    label_visibility: LabelVisibility = "visible",
+    on_select: WidgetCallback | None = None,
+    class_name: str = "dropdown-menu textcomplete-dropdown",
+    item_class_name: str = "textcomplete-item",
+    item_class_name_active: str = "textcomplete-item active",
+    footer: str | None = None,
+    header: str | None = None,
+    max_count: int = 10,
+    placement: Literal["auto"] | Literal["top"] | Literal["bottom"] = "bottom",
+    rotate: bool = False,
+    # style: str | None = None, # TODO: CSSStyleDeclaration
+    dynamic_width: bool = True,
+    css: str = "",
 ) -> str | None:
     # Call through to our private component function. Arguments we pass here
     # will be sent to the frontend, where they'll be available in an "args"
@@ -146,7 +80,26 @@ def textcomplete(
     #
     # "default" is a special argument that specifies the initial return
     # value of the component before the user has interacted with it.
-    component_value = _textcomplete(label=label, key=key)
+
+    dropdown_option = {
+        "height": height,
+        "className": class_name,
+        "footer": footer,
+        "header": header,
+        "maxCount": max_count,
+        "placement": placement,
+        "rotate": rotate,
+        # "style": style,
+        "dynamicWidth": dynamic_width,
+        "item": {
+            "className": item_class_name,
+            "activeClassName": item_class_name_active,
+        },
+    }
+
+    component_value = _textcomplete(
+        area_label=area_label, dropdown_option=dropdown_option, css=css, default=""
+    )
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.
