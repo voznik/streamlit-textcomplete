@@ -1,11 +1,10 @@
-import json
 import os
-from typing import Dict, List
 import streamlit as st
-from streamlit.runtime.caching import cache_data
+
+# import json
+# from streamlit.runtime.caching import cache_data
 from textcomplete import (
-    Textcomplete,
-    TextcompleteOption,
+    TextcompleteResult,
     StrategyProps,
     textcomplete,
 )
@@ -15,32 +14,55 @@ from textcomplete import (
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(current_dir, "textcomplete/frontend/public/assets/data")
 
+if "txt" not in st.session_state:
+    st.session_state["txt"] = "Hello, this is textcomplete demo @mr"
 
-def on_select(value):
-    print(value)
+original_label: str = "ST Text Area"
 
 
-original_label = "ST Text Area"
+def on_change():
+    print(st.session_state.txt)
 
-txt = st.text_area(
-    value="""It was the best of times, it was the worst of times,
-it was the age of wisdom,
-it was the age of foolishness,
-it was the epoch of belief,
-it was the epoch of incredulity,
-it was the season of Light,
-it was the season of Darkness,
-it was the spring of hope,
-it was the winter of despair (...)""",
-    key="st_text_area_1",
+
+txt: str = st.text_area(
     label=original_label,
+    value=st.session_state.txt,
+    key="st_text_area_1",
+    on_change=on_change,
 )
 
 st.write(f"You wrote {len(txt)} characters.")
 
+strategy = StrategyProps(
+    id="userFullName",
+    match="\\B@(\\w*)$",
+    search="""async (term, callback) => {
+  const response = await fetch('https://jsonplaceholder.typicode.com/users');
+  const users = await response.json();
+  const filteredUsers = users.filter(user =>
+    `${user.name}`.toLowerCase().includes(term.toLowerCase())
+  );
+  callback(filteredUsers.map(user => [user.name]));
+}
+""",
+    replace="""([fullName]) => `${fullName}`""",
+    template="""([fullName]) => `🧑🏻 ${fullName}`""",
+)
+
+
+def on_select(textcomplete_result: TextcompleteResult):
+    searchResult = textcomplete_result.get("searchResult", "")
+    text = textcomplete_result.get("text", "")
+    print(searchResult, text)
+    st.session_state.txt = text
+
+
 textcomplete(
     area_label=original_label,
+    strategies=[strategy],
     on_select=on_select,
     max_count=5,
     # style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;",
 )
+
+# st.write(f"Textcomplete result: {completed}")

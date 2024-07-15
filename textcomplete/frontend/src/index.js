@@ -1,7 +1,16 @@
 import { Streamlit, RenderData } from "streamlit-component-lib";
 import { Textcomplete, Strategy } from "@textcomplete/core";
 import { TextareaEditor } from "@textcomplete/textarea";
+// import TestUtils from 'react-dom/test-utils';
 import { startsWith } from "./emoji"
+
+/**
+ * Event handler for textcomplete event
+ * @callback textcompleteCallback
+ * @param {CustomEvent} e - The event object.
+ * @param {Object} e.detail - The detail of the event.
+ * @param {import('@textcomplete/core').SearchResult} e.detail.searchResult - The search result.
+ */
 
 const DEFAULT_DROPDOWN_MAX_COUNT = 3
 const DEFAULT_DROPDOWN_PLACEMENT = "bottom"
@@ -25,6 +34,19 @@ const DEFAULT_OPTIONS = {
 
 const CODEBLOCK = /`{3}/g
 const INLINECODE = /`/g
+const contextFn = (text) => {
+  const blockmatch = text.match(CODEBLOCK)
+  if (blockmatch && blockmatch.length % 2) {
+    // Cursor is in a code block
+    return false
+  }
+  const inlinematch = text.match(INLINECODE)
+  if (inlinematch && inlinematch.length % 2) {
+    // Cursor is in a inline code
+    return false
+  }
+  return true
+}
 /** @type {import('@textcomplete/core').Strategy} */
 const EMOJI_STRATEGY = {
   id: "emoji",
@@ -33,22 +55,42 @@ const EMOJI_STRATEGY = {
     callback(await startsWith(term))
   },
   replace: ([key]) => `:${key}: `,
+  // replace: ([key, value]) => value,
   template: ([key, url]) => `<img src="${url}"/>&nbsp;<small>:${key}:</small>`,
-  context: (text) => {
-    const blockmatch = text.match(CODEBLOCK)
-    if (blockmatch && blockmatch.length % 2) {
-      // Cursor is in a code block
-      return false
-    }
-    const inlinematch = text.match(INLINECODE)
-    if (inlinematch && inlinematch.length % 2) {
-      // Cursor is in a inline code
-      return false
-    }
-    return true
+  context: contextFn
+};
+/** @type {import('@textcomplete/core').Strategy} */
+const USER_NAME_STRATEGY = {
+  id: "userFullName",
+  match: /\B@(\w*)$/,
+  search: async (term, callback) => {
+    const response = await fetch('https://jsonplaceholder.typicode.com/users');
+    const users = await response.json();
+    const filteredUsers = users.filter(user =>
+      `${user.name}`.toLowerCase().includes(term.toLowerCase())
+    );
+    callback(filteredUsers.map(user => [user.name]));
   },
+  context: contextFn,
+  replace: ([fullName]) => `@${fullName} `,
+  template: ([fullName]) => `${fullName}`,
 };
 
+/**
+ * Convert stringified functions back into functions
+ * @param {import('@textcomplete/core').StrategyProps} props */
+const convertStrategyProps = (props) => {
+  return {
+    id: props.id,
+    index: props.index,
+    cache: props.cache,
+    match: new RegExp(props.match),
+    search: new Function('return ' + props.search)(),
+    replace: new Function('return ' + props.replace)(),
+    template: props.template && new Function('return ' + props.template)(),
+    context: props.context && new Function('return ' + props.context)() || contextFn,
+  }
+}
 /**
  * The component's render function. This will be called immediately after
  * the component is initially loaded, and then again every time the
@@ -60,21 +102,22 @@ function onRender(event) {
   // Get the RenderData from the event
   const data = event.detail
   const originalAreaValue = data.args["area_label"]
-  const strategies = [...(data.args["strategies"] || [EMOJI_STRATEGY])]
-  const dropdown = { ...data.args["dropdown_option"] } || DEFAULT_OPTION
-
-  // textareaElement.placeholder = "Suggest!"
   const textareaElement = window.parent.document.querySelector(`textarea[aria-label="${originalAreaValue}"]`);
-  dropdown.parent = window.parent.document.querySelector('#root')
+  const rootElement = window.parent.document.querySelector(`#root`);
 
   // Check if Textcomplete is already initialized
   if (textareaElement.textcompleteInitialized) {
-    // Optionally, dispose of the existing Textcomplete instance here
-    // For example: textareaElement.textcomplete.dispose();
     console.log("Textcomplete already initialized for this textarea.");
     return; // Skip re-initialization
   }
 
+  const strategies = data.args["strategies"].map(convertStrategyProps);
+  if (!strategies.length) {
+    strategies.push(EMOJI_STRATEGY)
+    strategies.push(USER_NAME_STRATEGY)
+  }
+  const dropdown = { ...data.args["dropdown_option"] } || DEFAULT_OPTION
+  dropdown.parent = window.parent.document.querySelector('#root')
   const rootStyles = getComputedStyle(window.document.documentElement)
   const backgroundColor = rootStyles.getPropertyValue('--background-color')
   const secondaryBackgroundColor = rootStyles.getPropertyValue('--secondary-background-color')
@@ -131,10 +174,70 @@ function onRender(event) {
   // Store the Textcomplete options on the textarea element for potential disposal
   textareaElement.setAttribute('data-textcomplete', JSON.stringify(data.args["dropdown_option"]));
 
+  let preventBlur = false;
+
+  textareaElement.addEventListener('blur', (e) => {
+    if (preventBlur) {
+      e.stopPropagation();
+      e.preventDefault();
+      console.log("Textcomplete blur prevented", e);
+    }
+  })
+
+  textcomplete.on('show', (e) => {
+    console.log("Textcomplete show", e);
+    preventBlur = true;
+  })
+
+  /**
+   * Event handler for 'selected' event
+   * @param {string} ename
+   * @param {textcompleteCallback} callback
+   */
   textcomplete.on('selected', (e) => {
-    console.log("Textcomplete selected", e.detail.value);
-    e.preventDefault();
-    // Streamlit.setComponentValue(e.detail.value);
+    const { searchResult } = e.detail;
+    const text = textareaElement.value;
+    delete searchResult.strategy;
+    console.log("Textcomplete selected", searchResult);
+    console.log("Text value", text);
+
+    preventBlur = false;
+
+    // Create a new InputEvent object with the same properties and methods as the native event object
+    const inputEvent = new InputEvent('input', {
+      bubbles: true,
+      cancelable: false,
+      composed: true,
+      inputType: 'insertText',
+      data: 'new value',
+      dataTransfer: null,
+      isComposing: false,
+      returnValue: true,
+    });
+    rootElement.dispatchEvent(inputEvent);
+
+    // Create a new synthetic event object with the same properties and methods as the synthetic event object that is created by React
+    const syntheticEvent = new Event({
+      nativeEvent: inputEvent,
+      type: 'change',
+      bubbles: true,
+      cancelable: false,
+      timeStamp: Date.now(),
+      defaultPrevented: false,
+      isTrusted: true,
+    })
+
+    // Attach the synthetic event object to the native event object using the _reactName property
+
+    syntheticEvent._reactName = 'onChange';
+    syntheticEvent.nativeEvent = inputEvent;
+    syntheticEvent._dispatchListeners = [syntheticEvent];
+    // Dispatch the native event object on the textarea element
+    // textareaElement.dispatchEvent(syntheticEvent);
+    // TestUtils.Simulate.change(textareaElement); // FIXME: no custom event works, neither simulate
+    setTimeout(() => {
+      // Streamlit.setComponentValue({ searchResult, text });
+    }, 0);
   });
 
   // We tell Streamlit to update our frameHeight after each render event, in

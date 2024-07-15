@@ -1,10 +1,18 @@
 import os
-
-from typing import Any, Callable, Dict, List, Literal, Optional, Union, overload  # noqa: F401,E501
-import pandas as pd
-import streamlit as st
+from typing import (  # noqa: F401,E501
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Literal,
+    Optional,
+    TypeVar,
+    TypedDict,
+    Union,
+)
 import streamlit.components.v1 as components
-from streamlit.elements.widgets.text_widgets import (
+from streamlit.elements.widgets.text_widgets import (  # noqa: F401
     LabelVisibility,
     WidgetCallback,
     WidgetArgs,
@@ -15,8 +23,7 @@ from streamlit.elements.widgets.text_widgets import (
 )
 from streamlit import session_state as ss  # noqa: F401
 
-# from streamlit.elements.widgets import WidgetCallback
-from streamlit.runtime.caching import cache_data
+from streamlit.runtime.caching import cache_data  # noqa: F401
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
 # the component, and True when we're ready to package and distribute it.
@@ -32,35 +39,81 @@ else:
 index_js_path = os.path.join(path, "index.js")
 _textcomplete = components.declare_component("textcomplete", path=path)
 
-DEFAULT_CONFIG = {
-    "name": "streamlit-rxdb",
-    "options": {"storageType": "dexie"},
-    "multiInstance": False,
-    "ignoreDuplicate": True,
-}
+
+class SearchResult(TypedDict):
+    data: Any
+    term: str
 
 
-class Textcomplete:
-    def __init__(self, strategies, trigger_immediately=None, option=None, focus=None):
-        self.trigger_immediately = trigger_immediately
-        self.strategies = strategies
-        self.option = option
-        self.focus = focus
+class TextcompleteResult(TypedDict):
+    searchResult: SearchResult
+    text: str
 
 
 class StrategyProps:
-    # Define the properties of StrategyProps here
-    pass
+    """_summary_
 
+    ```typescript
+      type ReplaceResult = [string, string] | string | null;
+    export interface StrategyProps<T = any> {
+        match: RegExp | ((regexp: string | RegExp) => RegExpMatchArray | null);
+        search: (term: string, callback: SearchCallback<T>, match: RegExpMatchArray) => void;
+        replace: (data: T) => ReplaceResult;
+        cache?: boolean;
+        context?: (text: string) => string | boolean;
+        template?: (data: T, term: string) => string;
+        index?: number;
+        id?: string;
+    }
+    ```
 
-class TextcompleteOption:
-    # Define the properties of TextcompleteOption here
-    pass
+    Args:
+        match (str): _summary_
+        search (str): _summary_
+        replace (str): _summary_
+        cache (str): _summary_
+        context (str): _summary_
+        template (str): _summary_
+        index (str): _summary_
+        id (str): _summary_
+    """
+
+    def __init__(
+        self,
+        match: str = None,
+        search: str = None,
+        replace: str = None,
+        cache: bool = False,
+        context: str = None,
+        template: str = None,
+        index: str = None,
+        id: str = None,
+    ) -> None:
+        self.match = match
+        self.search = search
+        self.replace = replace
+        self.cache = cache
+        self.context = context
+        self.template = template
+        self.index = index
+        self.id = id
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "match": self.match,
+            "search": self.search,
+            "replace": self.replace,
+            "cache": self.cache,
+            "context": self.context,
+            "template": self.template,
+            "index": self.index,
+            "id": self.id,
+        }
 
 
 def textcomplete(
     area_label: str,
-    height: int | None = None,
+    strategies: List[StrategyProps],
     on_select: WidgetCallback | None = None,
     class_name: str = "dropdown-menu textcomplete-dropdown",
     item_class_name: str = "textcomplete-item",
@@ -73,7 +126,7 @@ def textcomplete(
     # style: str | None = None, # TODO: CSSStyleDeclaration
     dynamic_width: bool = True,
     css: str = "",
-) -> str | None:
+) -> Optional[TextcompleteResult]:
     # Call through to our private component function. Arguments we pass here
     # will be sent to the frontend, where they'll be available in an "args"
     # dictionary.
@@ -82,7 +135,6 @@ def textcomplete(
     # value of the component before the user has interacted with it.
 
     dropdown_option = {
-        "height": height,
         "className": class_name,
         "footer": footer,
         "header": header,
@@ -97,13 +149,19 @@ def textcomplete(
         },
     }
 
-    component_value = _textcomplete(
-        area_label=area_label, dropdown_option=dropdown_option, css=css, default=""
+    result = _textcomplete(
+        area_label=area_label,
+        strategies=[strategy.to_dict() for strategy in strategies],
+        dropdown_option=dropdown_option,
+        css=css,
     )
+
+    if on_select and result:
+        on_select(result)
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.
-    return component_value
+    return result
 
 
 __title__ = "Streamlit Textcomplete"
