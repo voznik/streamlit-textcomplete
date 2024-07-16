@@ -33,7 +33,7 @@
       "module": "streamlit",
       "args": [
         "run",
-        "${file}",
+        "example.py",
         "--server.headless=true",
         "--browser.gatherUsageStats=false"
       ],

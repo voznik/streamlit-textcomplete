@@ -1,183 +1,91 @@
-# streamlit-rxdb-dataframe
+# Streamlit Textcomplete - Autocomplete text in any textarea
 
-Custom `streamlit` component connecting local browser `indexedDB` database as `RxDB` collection as `dataframe`
+Streamlit Textcomplete is a custom Streamlit component designed to enhance text input fields with autocomplete functionality. It leverages the powerful `textcomplete` library to provide users with a seamless and intuitive autocomplete experience within Streamlit applications.
 
 ## Demo
 
-[demo](https://st-rxdb-dataframe.streamlit.app/) - based on TodoMVC
+[demo](https://textcomplete.streamlit.app/)
 
-![Example Screencast](https://github.com/voznik/ngx-odm/blob/master/packages/streamlit-rxdb-dataframe/screencast.gif?raw=true)
+![Example Screencast](https://github.com/voznik/streamlit-textcomplete/blob/2277ab7b1589f2dd15b53e564e29b7c2e95191d0/screencast.gif?raw=true)
+
+
+## Features
+
+- **Autocomplete for Text Areas**: Enhance textarea in Streamlit with autocomplete functionality, making data input faster and more accurate.
+- **Customizable Strategies**: Define your own strategies for text autocomplete, including username mentions, emoji suggestions, and more.
+- **Easy Integration**: Seamlessly integrates with existing Streamlit applications with minimal setup.
+- **Flexible and Extensible**: Easily extend the component to support additional autocomplete strategies as per your application's needs.
+
+## Installation
+
+To install Streamlit Textcomplete, run the following command in your terminal:
+
+```sh
+pip install streamlit-textcomplete
+```
 
 ## Usage
 
-### Provide JSONSchema
+To use Streamlit Textcomplete in your Streamlit application, follow these steps:
 
-<details>
-<summary>JSONSchema</summary>
+1. Import the [`textcomplete`] function from the package.
+2. Define your autocomplete strategies.
+3. Define standard streamlit textarea but give it a defined label
+4. Initialize the textcomplete component with this label & your strategies.
 
-```json
-{
-  "definitions": {},
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "title": "Todo",
-  "description": "Todo Schema",
-  "required": ["id", "title", "createdAt"],
-  "version": 0,
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id",
-      "pattern": "^(.*)$",
-      "maxLength": 36,
-      "readOnly": true
-    },
-    "title": {
-      "type": "string",
-      "title": "Title",
-      "minLength": 3
-    },
-    "completed": {
-      "type": "boolean",
-      "title": "Done"
-    },
-    "createdAt": {
-      "type": "string",
-      "title": "Created Date",
-      "format": "date-time",
-      "readOnly": true
-    },
-    "last_modified": {
-      "type": "integer",
-      "format": "time",
-      "title": "Last Modified Date"
-    }
-  },
-  "__indexes": ["createdAt"],
-  "primaryKey": "id",
-  "attachments": {
-    "encrypted": false
-  }
-}
-```
-
-</details>
-
-### Provide Collection Config and use streamlit dataframe, data_editor or table
+Example:
 
 ```python
+import streamlit as st
+from textcomplete import textcomplete, StrategyProps
 
-todoSchema: Dict = json.load(open(os.path.join(data_dir, "todo.schema.json")))
-# initial_docs: List = json.load(open(os.path.join(data_dir, "col.dump.json")))["docs"]
-collection_config = {
-    "name": "todo",
-    "schema": todoSchema,  # to auto load schema from remote url pass None
-    "localDocuments": True,
-    "options": {
-        # 'schemaUrl': 'assets/data/todo.schema.json',
-        # "initialDocs": initial_docs,
-    },
-}
-
-def on_change_dataframe(rxdb_state: RxDBSessionState):
-    print("RxDBDataframe component on_change call")
-    print("collection.info()", rxdb_state.info)
-    print("dataframe.head()", rxdb_state.dataframe.head())
-
-df = rxdb_dataframe(
-    collection_config,
-    query=None,
-    with_rev=False,
-    on_change=on_change_dataframe,
+original_label: str = "Textcomplete Example"
+txt: str = st.text_area(
+    label=original_label,
+    key="st_text_area_1",
 )
-st.dataframe(
-    df,
-    use_container_width=True,
-    hide_index=True,
-    column_config=st.session_state["rxdb"]["column_config"],
-    column_order=["title", "completed", "createdAt"],
+# Define your autocomplete strategies
+username_strategy = StrategyProps(
+    id="userFullName",
+    match="\\B@(\\w*)$",
+    search=async_search_function,  # Define your async search function as JS string
+    replace="([fullName]) => `${fullName}`",
+    template="([fullName]) => `🧑🏻 ${fullName}`",
+)
+
+# Initialize the textcomplete component
+textcomplete(
+    area_label=original_label,
+    strategies=[username_strategy],
+    max_count=5,
+    # Additional options ...
 )
 ```
 
-## Run & Build
+## Development
 
-### Run
+To contribute to the development of Streamlit Textcomplete, you can set up a development environment by cloning the repository and installing the dependencies.
 
-```bash
-cd packages/streamlit-rxdb-dataframe/
-poetry run streamlit run example.py
+```sh
+git clone https://github.com/voznik/streamlit-textcomplete.git
+cd streamlit-textcomplete
+pip install -r requirements.txt
 ```
 
-### Build
+## Testing
 
-```bash
-poetry build -o ../../dist/packages/streamlit-rxdb-dataframe
+Run the tests to ensure everything is working as expected:
+
+```sh
+pytest
 ```
 
-### Publish
+## License
 
-```bash
-poetry publish -r test-pypi --dist-dir ../../dist/packages/streamlit-rx
-db-dataframe
-```
+Streamlit Textcomplete is MIT licensed, as found in the [LICENSE](LICENSE) file.
 
-<!--
-# TODO: Add form to construct RxQuery
-    # query_container = st.container()
-    # with query_container:
-    #     to_filter_columns = st.multiselect(
-    #         "Filter dataframe on",
-    #         df.columns,
-    #         key=f"{prefix}_multiselect",
-    #     )
-    #     filters: Dict[str, Any] = dict()
-    #     for column in to_filter_columns:
-    #         left, right = st.columns((1, 20))
-    #         # Treat columns with < 10 unique values as categorical
-    #         if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
-    #             left.write("↳")
-    #             filters[column] = right.multiselect(
-    #                 f"Values for {column}",
-    #                 df[column].unique(),
-    #                 default=list(df[column].unique()),
-    #                 key=f"{prefix}_{column}",
-    #             )
-    #             df = df[df[column].isin(filters[column])]
-    #         elif is_numeric_dtype(df[column]):
-    #             left.write("↳")
-    #             _min = float(df[column].min())
-    #             _max = float(df[column].max())
-    #             step = (_max - _min) / 100
-    #             filters[column] = right.slider(
-    #                 f"Values for {column}",
-    #                 _min,
-    #                 _max,
-    #                 (_min, _max),
-    #                 step=step,
-    #                 key=f"{prefix}_{column}",
-    #             )
-    #             df = df[df[column].between(*filters[column])]
-    #         elif is_datetime64_any_dtype(df[column]):
-    #             left.write("↳")
-    #             filters[column] = right.date_input(
-    #                 f"Values for {column}",
-    #                 value=(
-    #                     df[column].min(),
-    #                     df[column].max(),
-    #                 ),
-    #                 key=f"{prefix}_{column}",
-    #             )
-    #             if len(filters[column]) == 2:
-    #                 filters[column] = tuple(map(pd.to_datetime, filters[column]))  # noqa: E501
-    #                 start_date, end_date = filters[column]
-    #                 df = df.loc[df[column].between(start_date, end_date)]
-    #         else:
-    #             left.write("↳")
-    #             filters[column] = right.text_input(
-    #                 f"Pattern in {column}",
-    #                 key=f"{prefix}_{column}",
-    #             )
-    #             if filters[column]:
-    #                 print(filters[column])
- -->
+## Acknowledgments
+
+- This project is built using the [Textcomplete](https://yuku.takahashi.coffee/textcomplete/) library.
+- Special thanks to the Streamlit community for their support and contributions.
+

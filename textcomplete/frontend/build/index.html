@@ -1,7 +1,57 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script src="index.js"></script>
+    <script id="textcomplete_js" src="index.js"></script>
+    <!-- This style will be copied to root window, variables set from theme in javascript -->
+    <style id="textcomplete_css">
+      .textcomplete-dropdown {
+        box-sizing: border-box;
+        background-color: var(--secondary-background-color);
+        color: var(--text-color);
+        padding: 0;
+        margin: 0;
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
+      }
+      .textcomplete-header,
+      .textcomplete-footer {
+        display: none;
+      }
+      .textcomplete-item {
+        padding: 2px 4px;
+        cursor: pointer;
+        height: 2rem;
+        list-style: none;
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 2px;
+      }
+
+      .textcomplete-item.active {
+        background-color: var(--primary-color);
+      }
+
+      .textcomplete-item:first-of-type {
+        border-start-start-radius: 0.5rem;
+        border-start-end-radius: 0.5rem;
+      }
+
+      .textcomplete-item:last-of-type {
+        border-end-start-radius: 0.5rem;
+        border-end-end-radius: 0.5rem;
+      }
+
+      .textcomplete-item > span {
+        display: flex;
+        align-items: center;
+        padding: 2px;
+        width: 100%;
+      }
+      .textcomplete-item > span > * {
+        max-height: 2rem;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>

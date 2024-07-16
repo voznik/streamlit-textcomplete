@@ -1,10 +1,7 @@
 {
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "editor.formatOnSave": true,
-    "editor.quickSuggestions": {
-      "other": false
-    }
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": false,
   },
   "search.showLineNumbers": true,
   "debug.allowBreakpointsEverywhere": true,

@@ -66,16 +66,6 @@ class StrategyProps:
         id?: string;
     }
     ```
-
-    Args:
-        match (str): _summary_
-        search (str): _summary_
-        replace (str): _summary_
-        cache (str): _summary_
-        context (str): _summary_
-        template (str): _summary_
-        index (str): _summary_
-        id (str): _summary_
     """
 
     def __init__(
@@ -88,6 +78,8 @@ class StrategyProps:
         template: str = None,
         index: str = None,
         id: str = None,
+        data: List[Dict[str, Any]] = None,
+        comparator_keys: List[str] = [],
     ) -> None:
         self.match = match
         self.search = search
@@ -97,6 +89,8 @@ class StrategyProps:
         self.template = template
         self.index = index
         self.id = id
+        self.data = data
+        self.comparator_keys = comparator_keys
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -108,6 +102,8 @@ class StrategyProps:
             "template": self.template,
             "index": self.index,
             "id": self.id,
+            "data": self.data,
+            "comparatorKeys": self.comparator_keys,
         }
 
 
@@ -125,7 +121,7 @@ def textcomplete(
     rotate: bool = False,
     # style: str | None = None, # TODO: CSSStyleDeclaration
     dynamic_width: bool = True,
-    css: str = "",
+    dropdown_style: str = "",
 ) -> Optional[TextcompleteResult]:
     # Call through to our private component function. Arguments we pass here
     # will be sent to the frontend, where they'll be available in an "args"
@@ -141,7 +137,7 @@ def textcomplete(
         "maxCount": max_count,
         "placement": placement,
         "rotate": rotate,
-        # "style": style,
+        "style": dropdown_style,
         "dynamicWidth": dynamic_width,
         "item": {
             "className": item_class_name,
@@ -153,7 +149,6 @@ def textcomplete(
         area_label=area_label,
         strategies=[strategy.to_dict() for strategy in strategies],
         dropdown_option=dropdown_option,
-        css=css,
     )
 
     if on_select and result:

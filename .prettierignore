@@ -3,6 +3,3 @@
 /dist
 /coverage
 
-/.nx/cache
-.angular
-**/index.html
