@@ -1,10 +1,10 @@
 {
   "name": "streamlit-textcomplete",
   "version": "0.0.1",
-  "description": "Textcomplete editor for HTMLTextAreaElement",
+  "description": "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement",
   "main": "index.js",
-  "_type": "module",
   "scripts": {
+    "rspack": "rspack",
     "build": "rspack build",
     "dev": "rspack dev",
     "test": "jest"

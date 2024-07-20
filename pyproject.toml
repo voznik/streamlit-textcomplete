@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "streamlit-textcomplete"
 version = "0.1.0"
-description = "Textcomplete editor for HTMLTextAreaElement"
+description = "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement"
 authors = ["voznik <mrvoznik@gmail.com>"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://github.com/voznik/streamlit-textcomplete"
 repository = "https://github.com/voznik/streamlit-textcomplete"
-keywords = ["streamlit", "indexedDB", "RxDB", "browser", "connection", "dataframe"]
+keywords = ["streamlit", "textarea", "autocomplete", "textcomplete", "emoji"]
 packages = [{ include = "textcomplete" }]
 
 [tool.poetry.dependencies]
@@ -15,10 +15,9 @@ python = "^3.11"
 pytest-playwright = "^0.4.4"
 streamlit = "^1.31.0"
 playwright = "^1.41.2"
-pandas = "^2.2.1"
-jsonschema = "^4.21.1"
+pandas = "^2.2.2"
 
-
+emoji = "^2.12.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

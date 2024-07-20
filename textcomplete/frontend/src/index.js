@@ -1,5 +1,5 @@
 /* eslint-disable no-new-func */
-import { Streamlit } from 'streamlit-component-lib';
+import { Streamlit } from './streamlit';
 import { Textcomplete } from '@textcomplete/core';
 import { TextareaEditor } from '@textcomplete/textarea';
 import {} from '@textcomplete/utils';
@@ -11,7 +11,6 @@ import {} from '@textcomplete/utils';
  * @param {Object} e.detail - The detail of the event.
  * @param {import('@textcomplete/core').SearchResult} e.detail.searchResult - The search result.
  */
-
 
 /**
  * Convert stringified functions back into functions
@@ -40,7 +39,7 @@ const convertStrategyProps = (props, data = [], [labelKey, valueKey] = []) => {
     // Note that it can return a string or an array of two strings. If it returns
     // an array, the matched substring will be replaced by the concatenated string
     // and the cursor will be set between first and second strings.
-    replaceFn = (item) => `${item[valueKey]}`;
+    replaceFn = item => `${item[valueKey]}`;
   }
   return {
     id: props.id,
@@ -65,6 +64,7 @@ const parseTextcompleteArgs = (args, theme) => {
     throw new Error('Textcomplete: No label provided.');
   }
   const label = args.area_label;
+  const stopEnterPropagation = args.stop_enter_propagation || false;
   if (!args.strategies || !Array.isArray(args.strategies)) {
     throw new Error('Textcomplete: No strategies provided.');
   }
@@ -75,12 +75,7 @@ const parseTextcompleteArgs = (args, theme) => {
     console.warn('Textcomplete: No strategies provided. There will be no autocomplete.');
   }
   const option = {
-    dropdown: Object.assign(
-      {
-        parent: window.parent.document.querySelector('#root'),
-      },
-      args.dropdown_option
-    ),
+    dropdown: Object.assign({}, args.dropdown_option),
   };
   const variables = `
   :root {
@@ -91,7 +86,7 @@ const parseTextcompleteArgs = (args, theme) => {
   };
   `;
   const css = variables;
-  return { label, strategies, option, css };
+  return { label, strategies, option, stopEnterPropagation, css };
 };
 
 /**
@@ -103,7 +98,7 @@ const parseTextcompleteArgs = (args, theme) => {
  */
 function onRender(event) {
   // Get the RenderData from the event
-  const { label, strategies, option, css } = parseTextcompleteArgs(
+  const { label, strategies, option, stopEnterPropagation, css } = parseTextcompleteArgs(
     event.detail.args,
     event.detail.theme
   );
@@ -123,6 +118,10 @@ function onRender(event) {
   style.innerHTML = document.querySelector('style').innerHTML + '\n' + css;
   window.parent.document.head.appendChild(style);
 
+  // const parent = findParentByTestId(textareaElement, 'element-container');
+  option.dropdown.parent =
+    textareaElement.parentElement || window.parent.document.querySelector('#root');
+
   const editor = new TextareaEditor(textareaElement);
   const textcomplete = new Textcomplete(editor, strategies, option);
 
@@ -133,7 +132,18 @@ function onRender(event) {
     'data-textcomplete',
     JSON.stringify(event.detail.args.dropdown_option)
   );
-
+  if (stopEnterPropagation) {
+    textareaElement.setAttribute('data-textcomplete-stopenterpropagation', true);
+  }
+  /**
+   * Adjust position of dropdown when rendered
+   */
+  textcomplete.on('rendered', () => {
+    const dropdownElement = textareaElement.parentElement.querySelector(
+      '.textcomplete-dropdown'
+    );
+    dropdownElement.style.top = '4px';
+  });
   /**
    * Event handler for 'selected' event
    * @param {string} ename

@@ -1,4 +1,9 @@
 import os
+import pandas as pd
+
+# import pyarrow as pa
+# from streamlit.proto.Components_pb2 import SpecialArg
+# from streamlit.elements import arrow
 from typing import (  # noqa: F401,E501
     Any,
     Callable,
@@ -78,7 +83,7 @@ class StrategyProps:
         template: str = None,
         index: str = None,
         id: str = None,
-        data: List[Dict[str, Any]] = None,
+        data: List[Dict[str, Any]] | pd.DataFrame = None,
         comparator_keys: List[str] = [],
     ) -> None:
         self.match = match
@@ -93,7 +98,7 @@ class StrategyProps:
         self.comparator_keys = comparator_keys
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "match": self.match,
             "search": self.search,
             "replace": self.replace,
@@ -102,9 +107,15 @@ class StrategyProps:
             "template": self.template,
             "index": self.index,
             "id": self.id,
-            "data": self.data,
             "comparatorKeys": self.comparator_keys,
         }
+
+        if isinstance(self.data, pd.DataFrame):
+            result["data"] = self.data.to_dict(orient="records")
+        else:
+            result["data"] = self.data
+
+        return result
 
 
 def textcomplete(
