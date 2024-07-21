@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 # import pyarrow as pa
 # from streamlit.proto.Components_pb2 import SpecialArg
@@ -12,22 +11,23 @@ from typing import (  # noqa: F401,E501
     List,
     Literal,
     Optional,
-    TypeVar,
     TypedDict,
+    TypeVar,
     Union,
 )
+
+import pandas as pd
 import streamlit.components.v1 as components
+from streamlit import session_state as ss  # noqa: F401
 from streamlit.elements.widgets.text_widgets import (  # noqa: F401
-    LabelVisibility,
-    WidgetCallback,
-    WidgetArgs,
-    WidgetKwargs,
     Key,
+    LabelVisibility,
     SupportsStr,
     TextWidgetsMixin,
+    WidgetArgs,
+    WidgetCallback,
+    WidgetKwargs,
 )
-from streamlit import session_state as ss  # noqa: F401
-
 from streamlit.runtime.caching import cache_data  # noqa: F401
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
@@ -84,7 +84,7 @@ class StrategyProps:
         index: str = None,
         id: str = None,
         data: List[Dict[str, Any]] | pd.DataFrame = None,
-        comparator_keys: List[str] = [],
+        comparator_keys: List[str] = None,
     ) -> None:
         self.match = match
         self.search = search
@@ -95,7 +95,7 @@ class StrategyProps:
         self.index = index
         self.id = id
         self.data = data
-        self.comparator_keys = comparator_keys
+        self.comparator_keys = comparator_keys if comparator_keys is not None else []
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -130,7 +130,7 @@ def textcomplete(
     max_count: int = 10,
     placement: Literal["auto"] | Literal["top"] | Literal["bottom"] = "bottom",
     rotate: bool = False,
-    # style: str | None = None, # TODO: CSSStyleDeclaration
+    stop_enter_propagation: bool = False,
     dynamic_width: bool = True,
     dropdown_style: str = "",
 ) -> Optional[TextcompleteResult]:
@@ -160,6 +160,7 @@ def textcomplete(
         area_label=area_label,
         strategies=[strategy.to_dict() for strategy in strategies],
         dropdown_option=dropdown_option,
+        stop_enter_propagation=stop_enter_propagation,
     )
 
     if on_select and result:
@@ -167,13 +168,13 @@ def textcomplete(
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.
-    return result
+    # return result
 
 
 __title__ = "Streamlit Textcomplete"
-__desc__ = "Textcomplete editor for HTMLTextAreaElement."
-__icon__ = "🏦"
+__desc__ = "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement"
+__icon__ = "📝"
 # __examples__ = [example]
 __author__ = "voznik"
-__streamlit_cloud_url__ = "https://st-textcomplete.streamlitapp.com/"
+__streamlit_cloud_url__ = "https://textcomplete.streamlitapp.com/"
 __github_repo__ = "voznik/streamlit-textcomplete"

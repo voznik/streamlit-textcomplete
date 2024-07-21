@@ -19,13 +19,17 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-        "${file}"
+        "${file}",
+        // "-vv",
+        // "--headed"
       ],
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
       },
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "justMyCode": true
     },
+
     {
       "name": "Python: Debug Streamlit",
       "type": "debugpy",
@@ -33,7 +37,7 @@
       "module": "streamlit",
       "args": [
         "run",
-        "example.py",
+        "${workspaceFolder}/textcomplete/example.py",
         "--server.headless=true",
         "--browser.gatherUsageStats=false"
       ],

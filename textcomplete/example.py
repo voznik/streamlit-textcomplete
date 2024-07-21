@@ -1,11 +1,10 @@
 import streamlit as st
-import pandas as pd
 from emoji.unicode_codes.data_dict import EMOJI_DATA
 
 # from streamlit.runtime.caching import cache_data
 from textcomplete import (
-    TextcompleteResult,
     StrategyProps,
+    TextcompleteResult,
     textcomplete,
 )
 
@@ -47,13 +46,14 @@ if "txt" not in st.session_state:
 
 
 def on_change():
-    print(st.session_state.txt)
+    print(st.session_state["txt"])
 
 
 def on_select(textcomplete_result: TextcompleteResult):
     searchResult = textcomplete_result.get("searchResult", "")
     text = textcomplete_result.get("text", "")
     print(searchResult, text)
+    st.session_state["txt"] = text
 
 
 with col1:
@@ -78,6 +78,7 @@ with col1:
         strategies=[username_strategy, emoji_strategy],
         on_select=on_select,
         max_count=5,
+        stop_enter_propagation=True,
     )
 
 with col2:
@@ -97,11 +98,10 @@ with col2:
         strategies=[username_strategy, emoji_strategy],
         on_select=on_select,
         max_count=10,
-        placement="bottom",
+        stop_enter_propagation=True,
     )
 
-st.markdown(
-    """# Streamlit Autocomplete Text with Textcomplete
+st.markdown(r"""# Streamlit Autocomplete Text with Textcomplete
 
 ## Vendor
 
@@ -215,5 +215,4 @@ An option object affects rest of behavior.
   }
 }
 ```
-"""
-)  # noqa: F401
+""")  # noqa: F401

@@ -1,0 +1,14 @@
+diff --git a/node_modules/@textcomplete/textarea/dist/TextareaEditor.js b/node_modules/@textcomplete/textarea/dist/TextareaEditor.js
+index c2ed775..461197e 100644
+--- a/node_modules/@textcomplete/textarea/dist/TextareaEditor.js
++++ b/node_modules/@textcomplete/textarea/dist/TextareaEditor.js
+@@ -23,6 +23,9 @@ class TextareaEditor extends core_1.Editor {
+             }
+             else if (code === "ENTER") {
+                 event = this.emitEnterEvent();
++                if (el.dataset['textcompleteStopenterpropagation'] === 'true') {
++                  e.stopImmediatePropagation()
++                }
+             }
+             else if (code === "ESC") {
+                 event = this.emitEscEvent();
