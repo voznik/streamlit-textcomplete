@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "streamlit-textcomplete"
-version = "0.1.0"
+version = "0.1.1"
 description = "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement"
 authors = ["voznik <mrvoznik@gmail.com>"]
 readme = "README.md"
@@ -78,3 +78,13 @@ line-length = 100
 select = ["B", "E", "F", "W", "I"]
 
 [tool.ruff.per-file-ignores]
+
+[tool.semantic_release]
+version_variable = [
+    "textcomplete/__init__.py:__version__",
+    "pyproject.toml:version"
+]
+branch = "main"
+upload_to_pypi = true
+upload_to_release = true
+build_command = "pip install poetry && poetry build"
