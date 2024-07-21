@@ -1,36 +1,11 @@
 import streamlit as st
+from emoji.unicode_codes.data_dict import EMOJI_DATA
 
-# import json
 # from streamlit.runtime.caching import cache_data
 from textcomplete import (
-    TextcompleteResult,
     StrategyProps,
+    TextcompleteResult,
     textcomplete,
-)
-
-
-if "txt" not in st.session_state:
-    st.session_state["txt"] = "Hello, this is textcomplete demo @mr"
-
-
-def on_change():
-    print(st.session_state.txt)
-
-
-original_label: str = "Streamlit Autocomplete Textcomplete Example"
-txt: str = st.text_area(
-    label=original_label,
-    help="Type @ to see the user list, type : to see the emoji list",
-    value=st.session_state.txt,
-    key="st_text_area_1",
-    on_change=on_change,
-)
-st.caption("Type @ to see the user list, type : to see the emoji list")
-st.caption(f"You wrote {len(txt)} characters.")
-st.write(
-    """:orange[⚠️ IMPORTANT: Always type a space after autocomplete.
-There's no way to update streamlit react component state event though textarea value is updated :( ]
-"""
 )
 
 username_strategy = StrategyProps(
@@ -49,44 +24,84 @@ username_strategy = StrategyProps(
     template="""([fullName]) => `🧑🏻 ${fullName}`""",
 )
 
-emojis = [
-    {"name": "smile", "value": "😊"},
-    {"name": "heart", "value": "❤️"},
-    {"name": "sun", "value": "☀️"},
-    {"name": "star", "value": "⭐"},
-    {"name": "moon", "value": "🌙"},
-    {"name": "cloud", "value": "☁️"},
-    {"name": "code", "value": "🧑🏻‍💻"},
-    {"name": "fire", "value": "🔥"},
-    {"name": "thumbs_up", "value": "👍"},
-    {"name": "ukraine", "value": "🇺🇦"},
+emoji_data = [
+    {"name": properties["en"], "value": unicode_repr}
+    for unicode_repr, properties in EMOJI_DATA.items()
 ]
 # Example of strategy with default search & replace functions provided by the component
 # if search_data list is provided
 emoji_strategy = StrategyProps(
     id="emoji",
     match="\\B:(\\w*)$",
-    data=emojis,
+    data=emoji_data,
     comparator_keys=["name", "value"],
     template="""(emoji) => `${emoji['value']} :${emoji['name']}`""",
 )
+
+col1, col2 = st.columns(2, gap="medium")
+
+
+if "txt" not in st.session_state:
+    st.session_state["txt"] = "Hello, this is textcomplete demo @mr"
+
+
+def on_change():
+    print(st.session_state["txt"])
 
 
 def on_select(textcomplete_result: TextcompleteResult):
     searchResult = textcomplete_result.get("searchResult", "")
     text = textcomplete_result.get("text", "")
     print(searchResult, text)
+    st.session_state["txt"] = text
 
 
-textcomplete(
-    area_label=original_label,
-    strategies=[username_strategy, emoji_strategy],
-    on_select=on_select,
-    max_count=5,
-)
+with col1:
+    st.header("Example: `st.text_area` with Autocomplete")
+    original_label: str = "Streamlit Autocomplete Textcomplete Example"
+    txt: str = st.text_area(
+        label=original_label,
+        help="Type @ to see the user list, type : to see the emoji list",
+        value=st.session_state.txt,
+        key="st_text_area_1",
+        on_change=on_change,
+    )
+    st.caption("Type @ to see the user list, type : to see the emoji list")
+    st.caption(f"You wrote {len(txt)} characters.")
+    st.write(
+        """:orange[⚠️ IMPORTANT: Always type a space after autocomplete.
+    There's no way to update streamlit react component state event though textarea value is updated :( ]"""
+    )
 
-st.markdown(
-    """# Streamlit Autocomplete Text with Textcomplete
+    textcomplete(
+        area_label=original_label,
+        strategies=[username_strategy, emoji_strategy],
+        on_select=on_select,
+        max_count=5,
+        stop_enter_propagation=True,
+    )
+
+with col2:
+    st.header("Example: `st.chat_input` with Autocomplete")
+    chat_input_label = "Chat Input"
+    messages = st.container(height=300)
+    if prompt := st.chat_input(
+        placeholder=chat_input_label,
+        key="st_chat_input_1",
+        on_submit=on_change,
+    ):
+        messages.chat_message("user").write(prompt)
+        messages.chat_message("assistant").write(f"Echo: {prompt}")
+    # data-testid="stChatInputTextArea"
+    textcomplete(
+        area_label=chat_input_label,
+        strategies=[username_strategy, emoji_strategy],
+        on_select=on_select,
+        max_count=10,
+        stop_enter_propagation=True,
+    )
+
+st.markdown(r"""# Streamlit Autocomplete Text with Textcomplete
 
 ## Vendor
 
@@ -200,5 +215,4 @@ An option object affects rest of behavior.
   }
 }
 ```
-"""
-)
+""")  # noqa: F401

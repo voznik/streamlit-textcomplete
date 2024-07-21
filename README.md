@@ -29,7 +29,7 @@ pip install streamlit-textcomplete
 To use Streamlit Textcomplete in your Streamlit application, follow these steps:
 
 1. Import the [`textcomplete`] function from the package.
-2. Define your autocomplete strategies.
+2. Define your autocomplete (multiple) strategies.
 3. Define standard streamlit textarea but give it a defined label
 4. Initialize the textcomplete component with this label & your strategies.
 

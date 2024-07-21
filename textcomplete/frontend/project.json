@@ -1,8 +1,0 @@
-{
-  "name": "streamlit-textcomplete-frontend",
-  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/streamlit-textcomplete/frontend",
-  "projectType": "application",
-  "targets": {},
-  "tags": []
-}

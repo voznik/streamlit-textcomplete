@@ -1,10 +1,11 @@
 {
   "name": "streamlit-textcomplete",
   "version": "0.0.1",
-  "description": "Textcomplete editor for HTMLTextAreaElement",
+  "description": "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement",
   "main": "index.js",
-  "_type": "module",
   "scripts": {
+    "postinstall": "patch-package",
+    "rspack": "rspack",
     "build": "rspack build",
     "dev": "rspack dev",
     "test": "jest"
@@ -35,6 +36,7 @@
     "husky": "^8.0.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "patch-package": "^8.0.0",
     "prettier": "3.0.3"
   },
   "overrides": {

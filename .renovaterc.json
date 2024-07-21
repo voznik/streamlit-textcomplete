@@ -2,16 +2,10 @@
   "extends": [
     "config:base",
     "group:all",
-    "monorepo:angular",
     "schedule:monthly",
     ":maintainLockFilesMonthly"
   ],
-  "ignoreDeps": [
-    "typescript",
-    "semantic-release",
-    "@semantic-release/git",
-    "@semantic-release/changelog"
-  ],
+  "ignoreDeps": [],
   "pinVersions": false,
   "separatePatchReleases": false,
   "ignoreUnstable": true,
@@ -23,18 +17,5 @@
   "peerDependencies": {
     "versionStrategy": "widen"
   },
-  "packageRules": [
-    {
-      "sourceUrlPrefixes": ["https://github.com/babel/babel"],
-      "groupName": "babel monorepo"
-    },
-    {
-      "packagePatterns": ["^eslint"],
-      "groupName": "eslint"
-    },
-    {
-      "packagePatterns": ["jest"],
-      "groupName": "jest"
-    }
-  ]
+  "packageRules": []
 }
