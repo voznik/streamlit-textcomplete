@@ -46,4 +46,4 @@ junit.xml
 .DS_Store
 Thumbs.db
 
-.nx/cache
+.venv
