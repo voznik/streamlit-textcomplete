@@ -135,6 +135,7 @@ def textcomplete(
     dynamic_width: bool = True,
     dropdown_style: str = "",
     args: Optional[Tuple] = tuple(),
+    key: Optional[str] = None,
 ) -> Optional[TextcompleteResult]:
     # Call through to our private component function. Arguments we pass here
     # will be sent to the frontend, where they'll be available in an "args"
@@ -163,6 +164,7 @@ def textcomplete(
         strategies=[strategy.to_dict() for strategy in strategies],
         dropdown_option=dropdown_option,
         stop_enter_propagation=stop_enter_propagation,
+        key=key,
     )
 
     if on_select and result:
