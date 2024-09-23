@@ -13,6 +13,7 @@ from typing import (  # noqa: F401,E501
     Optional,
     TypedDict,
     TypeVar,
+    Tuple,
     Union,
 )
 
@@ -133,6 +134,8 @@ def textcomplete(
     stop_enter_propagation: bool = False,
     dynamic_width: bool = True,
     dropdown_style: str = "",
+    args: Optional[Tuple] = tuple(),
+    key: Optional[str] = None,
 ) -> Optional[TextcompleteResult]:
     # Call through to our private component function. Arguments we pass here
     # will be sent to the frontend, where they'll be available in an "args"
@@ -161,10 +164,11 @@ def textcomplete(
         strategies=[strategy.to_dict() for strategy in strategies],
         dropdown_option=dropdown_option,
         stop_enter_propagation=stop_enter_propagation,
+        key=key,
     )
 
     if on_select and result:
-        on_select(result)
+        on_select(result, *args)
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.
