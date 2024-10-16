@@ -1,6 +1,6 @@
 {
   "name": "streamlit-textcomplete",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,9 @@
     "rspack": "rspack",
     "build": "rspack build",
     "dev": "rspack dev",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src",
+    "format": "prettier src --write"
   },
   "keywords": [
     "streamlit",
@@ -20,6 +22,7 @@
   "dependencies": {
     "@textcomplete/core": "^0.1.13",
     "@textcomplete/textarea": "^0.1.13",
+    "fuse.js": "^7.0.0",
     "streamlit-component-lib": "^2.0.0"
   },
   "devDependencies": {

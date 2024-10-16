@@ -1,37 +1,62 @@
+import Fuse from 'fuse.js/basic';
+
+const validateAndConvertFunction = (fnString, fnName) => {
+  if (fnString && typeof fnString === 'string' && fnString.trim() !== '') {
+    try {
+      const fn = new Function('return ' + fnString)();
+      if (typeof fn !== 'function') {
+        throw new Error(`${fnName} is not a valid function`);
+      }
+      return fn;
+    } catch (error) {
+      throw new Error(`Invalid ${fnName} function: ` + error.message);
+    }
+  } else {
+    throw new Error(`${fnName} is not a valid string or is empty`);
+  }
+};
+
+const DEFAULT_FUSE_OPTIONS = { keys: ['name'] };
+const DEFAULT_NOOP_FN = `() => []`;
+
 /**
  * Convert stringified functions back into functions
  * @param {import('@textcomplete/core').StrategyProps} props
  * @param {any[]} data
  * @param {string} key
  */
-export const convertStrategyProps = (props, data = [], [labelKey, valueKey] = []) => {
-  let searchFn = new Function('return ' + props.search)();
-  let replaceFn = new Function('return ' + props.replace)();
-  let templateFn = props.template && new Function('return ' + props.template)();
-  let contextFn = props.context && new Function('return ' + props.context)();
-  // If data is provided, create a default search function that filters the data by key
-  if (Array.isArray(data) && data.length && labelKey && valueKey) {
+export const convertStrategyProps = ({
+  id,
+  index,
+  cache,
+  match,
+  search,
+  replace,
+  template,
+  context,
+  data = [],
+  fuseOptions,
+}) => {
+  let searchFn = validateAndConvertFunction(search || DEFAULT_NOOP_FN, 'search');
+  let replaceFn = validateAndConvertFunction(replace, 'replace');
+  let templateFn = validateAndConvertFunction(template, 'template');
+  let contextFn = context && new Function('return ' + context)();
+  // If data is provided, create a default search function that uses Fuse.js to search the data
+  if (Array.isArray(data) && data.length) {
+    const fuse = new Fuse(data, fuseOptions || DEFAULT_FUSE_OPTIONS);
     // (Required) When the current input matches the "match" regexp above, this
     // function is called. The first argument is the captured substring.
     // You can callback only once for each search.
-    searchFn = (term, callback, match) => {
-      const filteredData = data.filter(item =>
-        `${item[labelKey]}`.toLowerCase().includes(term.toLowerCase())
-      );
-      callback(filteredData);
+    searchFn = (term, callback) => {
+      const result = fuse.search(term).map(result => result.item);
+      callback(result);
     };
-    // (Required) Specify how to update the editor value. The whole substring
-    // matched in the match phase will be replaced by the returned value.
-    // Note that it can return a string or an array of two strings. If it returns
-    // an array, the matched substring will be replaced by the concatenated string
-    // and the cursor will be set between first and second strings.
-    replaceFn = item => `${item[valueKey]}`;
   }
   return {
-    id: props.id,
-    index: props.index,
-    cache: props.cache,
-    match: new RegExp(props.match),
+    id: id,
+    index: index,
+    cache: cache,
+    match: new RegExp(match),
     search: searchFn,
     replace: replaceFn,
     template: templateFn,
@@ -39,31 +64,32 @@ export const convertStrategyProps = (props, data = [], [labelKey, valueKey] = []
   };
 };
 
-/**
- * Parse the Textcomplete args
- * @param {any} args
- * @param {any} theme
- * */
-//  @returns {import('@textcomplete/core').TextcompleteOption}
-export const parseTextcompleteArgs = (args, theme) => {
-  if (!args.area_label) {
-    throw new Error('Textcomplete: No label provided.');
-  }
-  const label = args.area_label;
-  const stopEnterPropagation = args.stop_enter_propagation || false;
+export const parseTextcompleteStrategies = args => {
   if (!args.strategies || !Array.isArray(args.strategies)) {
     throw new Error('Textcomplete: No strategies provided.');
   }
-  const strategies = args.strategies.map(s =>
-    convertStrategyProps(s, s.data, s.comparatorKeys)
-  );
+  const strategies = args.strategies.map(s => convertStrategyProps(s));
   if (!strategies.length) {
     console.warn('Textcomplete: No strategies provided. There will be no autocomplete.');
   }
-  const option = {
+  return strategies;
+};
+
+export const parseTextcompleteOption = args => {
+  return {
     dropdown: Object.assign({}, args.dropdown_option),
   };
-  const variables = `
+};
+
+export const parseTextcompleteLabel = args => {
+  if (!args.area_label) {
+    throw new Error('Textcomplete: No label provided.');
+  }
+  return args.area_label;
+};
+
+export const parseTextcompleteCss = theme => {
+  return `
   :root {
     --background-color: ${theme.backgroundColor};
     --secondary-background-color: ${theme.secondaryBackgroundColor};
@@ -71,6 +97,4 @@ export const parseTextcompleteArgs = (args, theme) => {
     --primary-color: ${theme.primaryColor};
   };
   `;
-  const css = variables;
-  return { label, strategies, option, stopEnterPropagation, css };
 };

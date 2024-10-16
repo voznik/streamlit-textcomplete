@@ -2,7 +2,12 @@
 import { Streamlit } from './streamlit';
 import { Textcomplete } from '@textcomplete/core';
 import { TextareaEditor } from '@textcomplete/textarea';
-import { parseTextcompleteArgs } from './helpers';
+import {
+  parseTextcompleteLabel,
+  parseTextcompleteCss,
+  parseTextcompleteOption,
+  parseTextcompleteStrategies,
+} from './helpers';
 
 /**
  * Event handler for textcomplete event
@@ -21,11 +26,9 @@ import { parseTextcompleteArgs } from './helpers';
  * @param {RenderData} event - Data sent from the Streamlit app
  */
 function onRender(event) {
-  // Get the RenderData from the event
-  const { label, strategies, option, stopEnterPropagation, css } = parseTextcompleteArgs(
-    event.detail.args,
-    event.detail.theme
-  );
+  const { args, theme } = event.detail;
+  const label = parseTextcompleteLabel(args);
+  const css = parseTextcompleteCss(theme);
   const rootElement = window.parent.document.querySelector('#root');
   const textareaElement = window.parent.document.querySelector(
     `textarea[aria-label="${label}"]`
@@ -42,7 +45,9 @@ function onRender(event) {
   style.innerHTML = document.querySelector('style').innerHTML + '\n' + css;
   window.parent.document.head.appendChild(style);
 
+  const option = parseTextcompleteOption(args);
   option.dropdown.parent = textareaElement.parentElement || rootElement;
+  const strategies = parseTextcompleteStrategies(args);
 
   const editor = new TextareaEditor(textareaElement);
   const textcomplete = new Textcomplete(editor, strategies, option);
@@ -54,7 +59,7 @@ function onRender(event) {
     'data-textcomplete',
     JSON.stringify(event.detail.args.dropdown_option)
   );
-  if (stopEnterPropagation) {
+  if (!!args.stop_enter_propagation) {
     textareaElement.setAttribute('data-textcomplete-stopenterpropagation', true);
   }
   /**
@@ -85,20 +90,29 @@ function onRender(event) {
       bubbles: true,
       cancelable: false,
     });
-    Object.defineProperty(nativeEvent, 'target', { writable: false, value: textareaElement });
-    Object.defineProperty(nativeEvent, 'srcElement', { writable: false, value: textareaElement });
+    Object.defineProperty(nativeEvent, 'target', {
+      writable: false,
+      value: textareaElement,
+    });
+    Object.defineProperty(nativeEvent, 'srcElement', {
+      writable: false,
+      value: textareaElement,
+    });
     // Create a new synthetic event object with the same properties and methods as the synthetic event object that is created by React
     const changeEvent = new Event('change', {
       bubbles: true,
       cancelable: false,
     });
-    Object.defineProperty(changeEvent, 'target', { writable: false, value: textareaElement });
+    Object.defineProperty(changeEvent, 'target', {
+      writable: false,
+      value: textareaElement,
+    });
     // Attach the synthetic event object to the native event object using the _reactName property
     changeEvent._reactName = 'onChange';
     changeEvent.nativeEvent = nativeEvent;
     // Dispatch the native event object on the textarea element
     rootElement.dispatchEvent(changeEvent);
-    textareaElement.dispatchEvent(changeEvent)
+    textareaElement.dispatchEvent(changeEvent);
     // Streamlit.setComponentValue({ searchResult, text }); // FIXME: updating component causes re-render and resets textarea value by original react component state
   });
 
