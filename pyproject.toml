@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "streamlit-textcomplete"
-version = "0.1.2"
+version = "0.2.0"
 description = "Streamlit autocomplete Textcomplete editor for HTMLTextAreaElement"
 authors = ["voznik <mrvoznik@gmail.com>"]
 readme = "README.md"

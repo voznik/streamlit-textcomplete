@@ -8,6 +8,8 @@ from textcomplete import (
     textcomplete,
 )
 
+# Example of strategy with async search function JS string
+# Type `@` to see the users list
 username_strategy = StrategyProps(
     id="userFullName",
     match="\\B@(\\w*)$",
@@ -24,18 +26,53 @@ username_strategy = StrategyProps(
     template="""([fullName]) => `🧑🏻 ${fullName}`""",
 )
 
+company_data = [
+    {
+        "name": "Amazon",
+        "products": [
+            {"name": "Echo Dot"},
+            {"name": "Kindle Paperwhite"},
+            {"name": "Amazon Fire TV Stick"},
+        ],
+    },
+    {
+        "name": "Netflix",
+        "products": [{"name": "Stranger Things"}, {"name": "The Crown"}, {"name": "Squid Game"}],
+    },
+    {
+        "name": "Google",
+        "products": [
+            {"name": "Google Pixel 7"},
+            {"name": "Nest Thermostat"},
+            {"name": "Chromecast"},
+        ],
+    },
+]
+
+# Example of strategy with default search function is provided by the component
+# Type `#` to see the company list
+company_name_strategy = StrategyProps(
+    id="companyName",
+    match="\\B#(\\w*)$",
+    template="""(company) => company.name""",
+    replace="""(company) => `${company.name}`""",
+    data=company_data,
+    fuse_options={"keys": ["name", "products.name"], "shouldSort": False, "threshold": 0.5},
+)
+
 emoji_data = [
     {"name": properties["en"], "value": unicode_repr}
     for unicode_repr, properties in EMOJI_DATA.items()
 ]
-# Example of strategy with default search & replace functions provided by the component
-# if search_data list is provided
+
+# Example of strategy with default search function is provided by the component
+# Type `:` to see the emoji list
 emoji_strategy = StrategyProps(
     id="emoji",
     match="\\B:(\\w*)$",
+    template="""(emoji) => `${emoji.value} :${emoji.name}`""",
+    replace="""emoji => emoji.value""",
     data=emoji_data,
-    comparator_keys=["name", "value"],
-    template="""(emoji) => `${emoji['value']} :${emoji['name']}`""",
 )
 
 col1, col2 = st.columns(2, gap="medium")
@@ -70,12 +107,13 @@ with col1:
     st.caption(f"You wrote {len(txt)} characters.")
     st.write(
         """:orange[⚠️ IMPORTANT: Always type a space after autocomplete.
-    There's no way to update streamlit react component state event though textarea value is updated :( ]"""
+    There's no way to update streamlit react component state event
+    even though textarea value is updated :( ]"""
     )
 
     textcomplete(
         area_label=original_label,
-        strategies=[username_strategy, emoji_strategy],
+        strategies=[username_strategy, company_name_strategy, emoji_strategy],
         on_select=on_select,
         max_count=5,
         stop_enter_propagation=True,
@@ -95,7 +133,7 @@ with col2:
     # data-testid="stChatInputTextArea"
     textcomplete(
         area_label=chat_input_label,
-        strategies=[username_strategy, emoji_strategy],
+        strategies=[username_strategy, company_name_strategy, emoji_strategy],
         on_select=on_select,
         max_count=10,
         stop_enter_propagation=True,
@@ -109,7 +147,7 @@ https://yuku.takahashi.coffee/textcomplete/
 
 ## Usage
 To use textcomplete, you have to create a Textcomplete object with an editor:
-
+# noqa: F401,E501
 ## How it works
 (An input event is triggered to the underlying HTML element.)
 The editor emits a change event.

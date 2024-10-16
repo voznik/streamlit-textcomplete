@@ -11,9 +11,9 @@ from typing import (  # noqa: F401,E501
     List,
     Literal,
     Optional,
+    Tuple,
     TypedDict,
     TypeVar,
-    Tuple,
     Union,
 )
 
@@ -62,30 +62,33 @@ class StrategyProps:
     ```typescript
       type ReplaceResult = [string, string] | string | null;
     export interface StrategyProps<T = any> {
+        id: string;
         match: RegExp | ((regexp: string | RegExp) => RegExpMatchArray | null);
-        search: (term: string, callback: SearchCallback<T>, match: RegExpMatchArray) => void;
+        template: (data: T, term: string) => string;
         replace: (data: T) => ReplaceResult;
+        search: (term: string, callback: SearchCallback<T>, match: RegExpMatchArray) => void;
         cache?: boolean;
         context?: (text: string) => string | boolean;
-        template?: (data: T, term: string) => string;
         index?: number;
-        id?: string;
+        data?: Arrray<T> | DataFrame;
+        fuse_options?: FuseOptions;
     }
     ```
     """
 
     def __init__(
         self,
-        match: str = None,
+        id: str,
+        match: str,
+        template: str,
+        replace: str,
         search: str = None,
-        replace: str = None,
         cache: bool = False,
         context: str = None,
-        template: str = None,
         index: str = None,
-        id: str = None,
         data: List[Dict[str, Any]] | pd.DataFrame = None,
-        comparator_keys: List[str] = None,
+        fuse_options: Dict[str, Any] = None,
+        # comparator_keys: List[str] = None,
     ) -> None:
         self.match = match
         self.search = search
@@ -96,7 +99,8 @@ class StrategyProps:
         self.index = index
         self.id = id
         self.data = data
-        self.comparator_keys = comparator_keys if comparator_keys is not None else []
+        self.fuse_options = fuse_options
+        # self.comparator_keys = comparator_keys if comparator_keys is not None else []
 
     def to_dict(self) -> Dict[str, Any]:
         result = {
@@ -108,7 +112,8 @@ class StrategyProps:
             "template": self.template,
             "index": self.index,
             "id": self.id,
-            "comparatorKeys": self.comparator_keys,
+            # "comparatorKeys": self.comparator_keys,
+            "fuseOptions": self.fuse_options,
         }
 
         if isinstance(self.data, pd.DataFrame):
